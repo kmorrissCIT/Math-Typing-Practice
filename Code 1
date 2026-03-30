@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Math Typing Practice – Gateway Prep</title>
+ <script
+ src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+ </script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f9fafb; }
+    h1, h2 { color: #1f2937; }
+    .card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+    input[type=text] { width: 100%; padding: 0.6rem; font-size: 1rem; margin-top: 0.5rem; }
+    button { margin-top: 0.75rem; margin-right: 0.5rem; padding: 0.5rem 1rem; font-size: 1rem; border-radius: 8px; border: none; cursor: pointer; }
+    .primary { background: #2563eb; color: white; }
+    .secondary { background: #e5e7eb; }
+    .feedback { margin-top: 0.75rem; }
+    .preview { margin-top: 0.75rem; padding: 0.75rem; background: #f3f4f6; border-radius: 8px; }
+    .small { color: #6b7280; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+
+<h1>Math Typing Practice for Gateway Exams</h1>
+<p><strong>Purpose:</strong> This tool helps you practice <em>typing math expressions</em> the way a computer expects — just like on Calc I & II gateway exams.</p>
+<p class="small">There is no grading, no timer, and unlimited retries. The goal is comfort and confidence.</p>
+
+<div class="card">
+  <h2 id="promptTitle">Practice Question</h2>
+  <p id="promptText"></p>
+
+  <label for="answer">Type your response:</label>
+  <input type="text" id="answer" placeholder="Example: (-1/3)*sin(pi/4)" />
+
+  <div>
+    <button class="primary" onclick="checkAnswer()">Check My Syntax</button>
+    <button class="secondary" onclick="togglePreview()">Preview: What the Computer Thinks I Typed</button>
+    <button class="secondary" onclick="nextQuestion()">New Question</button>
+  </div>
+
+  <div id="feedback" class="feedback"></div>
+  <div id="preview" class="preview" style="display:none;"></div>
+</div>
+
+<div class="card">
+  <h2>Helpful Typing Rules</h2>
+  <ul>
+    <li>Fractions use <code>/</code> and parentheses: <code>1/(x+1)</code></li>
+    <li>Always group what belongs together: <code>(x+1)^2</code></li>
+    <li>Use <code>*</code> for multiplication: <code>2*x</code></li>
+    <li>Functions need parentheses: <code>sin(x)</code>, <code>ln(x)</code></li>
+    <li>Constants: <code>pi</code>, <code>e</code></li>
+  </ul>
+</div>
+
+<script>
+const questions = [
+  {latex:"\\frac{5}{x+1}", answers:["5/(x+1)"]},
+  {latex:"-\\frac{3}{x-2}", answers:["-3/(x-2)","(-3)/(x-2)"]},
+  {latex:"\\frac{x^2+1}{x}", answers:["(x^2+1)/x"]},
+  {latex:"\\frac{2x}{x^2+1}", answers:["2*x/(x^2+1)"]},
+  {latex:"\\frac{1}{(x+1)^2}", answers:["1/(x+1)^2"]},
+  {latex:"\\frac{x}{\\sqrt{x+1}}", answers:["x/sqrt(x+1)"]},
+  {latex:"\\sin(2x)", answers:["sin(2*x)"]},
+  {latex:"\\cos(x^2)", answers:["cos(x^2)"]},
+  {latex:"\\ln(x+1)", answers:["ln(x+1)"]},
+  {latex:"e^{3x}", answers:["e^(3*x)"]},
+  {latex:"\\sin\\left(\\frac{\\pi}{4}\\right)", answers:["sin(pi/4)"]},
+  {latex:"\\sqrt{x^2+1}", answers:["sqrt(x^2+1)"]},
+  {latex:"-\\frac{1}{3}", answers:["-1/3","(-1/3)"]},
+  {latex:"-\\frac{1}{3}x", answers:["(-1/3)*x"]},
+  {latex:"\\pi x", answers:["pi*x"]},
+  {latex:"-\\sin(x)", answers:["-sin(x)"]},
+  {latex:"-\\frac{1}{3}\\sin\\left(\\frac{\\pi}{4}\\right)", answers:["(-1/3)*sin(pi/4)","-(1/3)*sin(pi/4)"]},
+  {latex:"\\frac{2x+1}{\\sqrt{x}}", answers:["(2*x+1)/sqrt(x)"]},
+  {latex:"x\\ln(x)", answers:["x*ln(x)"]},
+  {latex:"\\frac{e^x}{x^2+1}", answers:["e^x/(x^2+1)"]},
+  {latex:"\\sqrt{1-\\cos(x)}", answers:["sqrt(1-cos(x))"]},
+  {latex:"\\frac{\\sin(x)}{x}", answers:["sin(x)/x"]}
+];
+
+let current = {};
+
+function normalize(str) {
+  return str.replace(/\s+/g,'').toLowerCase();
+}
+
+function loadQuestion() {
+  current = questions[Math.floor(Math.random()*questions.length)];
+  document.getElementById('promptText').innerHTML = `\\[ ${current.latex} \\]`;
+  document.getElementById('answer').value = '';
+  document.getElementById('feedback').innerHTML = '';
+  document.getElementById('preview').style.display = 'none';
+  MathJax.typeset();
+}
+
+function checkAnswer() {
+  const userRaw = document.getElementById('answer').value;
+  const user = normalize(userRaw);
+  const feedback = document.getElementById('feedback');
+
+  if (!user) {
+    feedback.innerHTML = 'Type something first — experimenting is part of learning.';
+    return;
+  }
+
+  const correct = current.answers.some(a => normalize(a) === user);
+
+  if (correct) {
+    feedback.innerHTML = '✅ Nice work! This will be read correctly on a gateway-style system.';
+  } else if (!userRaw.includes('(') && /sqrt|sin|cos|ln/.test(userRaw)) {
+    feedback.innerHTML = 'ℹ️ Be sure to use parentheses so the computer knows what the function applies to.';
+  } else if (!userRaw.includes('*') && /[a-zA-Z]\(/.test(userRaw)) {
+    feedback.innerHTML = 'ℹ️ Remember: multiplication must be typed using <code>*</code>.';
+  } else {
+    feedback.innerHTML = 'ℹ️ This is close. Check grouping and parentheses — the computer just needs clarity.';
+  }
+}
+
+function togglePreview() {
+  const preview = document.getElementById('preview');
+  const input = document.getElementById('answer').value;
+
+  if (!input) {
+    preview.style.display = 'block';
+    preview.innerHTML = 'Nothing to preview yet.';
+    return;
+  }
+
+  preview.style.display = preview.style.display === 'none' ? 'block' : 'none';
+  preview.innerHTML = `The computer interprets your typing as: \\[
+    ${input.replace(/\*/g,'\\cdot ')}\\]
+  `;
+  MathJax.typeset();
+}
+
+function nextQuestion() {
+  loadQuestion();
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
